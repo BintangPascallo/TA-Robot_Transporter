@@ -4,11 +4,16 @@ import os
 from PIL import ImageTk,Image  
 import signal
 import tkinter as tk
+import socket
+from time import sleep
 
 # Call Class
 # from font_style import *
 # from splashscreen import *
 # from menu import *
+
+# Declare Global
+ip_val = " Check IP Address"
 
 # Main Class
 class MainApp(ctk.CTk):
@@ -16,11 +21,13 @@ class MainApp(ctk.CTk):
         super().__init__()
         
         # Configuration
-        self.attributes('-topmost', 1)
+        self.wm_attributes('-type','splash')
+        self.attributes('-topmost', True)
+        self.after_idle(self.attributes,'-topmost',False)
         self.resizable(False, False)
         self.configure(bg='black')
         self.title('Robot Transporter')
-        # self.overrideredirect(True) # or 1 instead of True
+        # self.overrideredirect(False) # or 1 instead of True
         # self.window.iconbitmap('./assets/pythontutorial.ico')
         
         # Get The Screen Dimension
@@ -42,7 +49,7 @@ class MainApp(ctk.CTk):
         # Frame
         self._frame = None
         self.switch_frame(SplashScreenFrame) # SplashScreenFrame
-        self.after(3000, lambda : self.switch_frame(MainMenuFrame)) 
+        self.after(1000, lambda : self.switch_frame(MainMenuFrame)) 
         
     # Swith Frame Logic
     def switch_frame(self, frame_class):
@@ -56,11 +63,6 @@ class MainApp(ctk.CTk):
         self._frame = new_frame
         self._frame.pack(expand = True, fill = "both")
         
-        # tk.Label(self, text="This is the start page").pack(side="top", fill="x", pady=10)
-        # tk.Button(self, text="Open page one",
-        #         command=lambda: master.switch_frame(PageOne)).pack()
-        # tk.Button(self, text="Open page two",
-        #         command=lambda: master.switch_frame(PageTwo)).pack()
         
 # Splash Screen Class
 class SplashScreenFrame(ctk.CTkFrame):
@@ -117,7 +119,7 @@ class MainMenuFrame(ctk.CTkFrame):
             '/home/bintangpascallo/GUI_robot/Assets/images/ButtonBack.png'
             ),size = (45, 45))
         
-        button_manual = ctk.CTkButton(
+        button_exit = ctk.CTkButton(
             self,
             fg_color = 'black',
             image = image_exit,
@@ -125,16 +127,27 @@ class MainMenuFrame(ctk.CTkFrame):
             width = 45,
             height = 45,
             hover_color = '#4E4500', #7A6D00
-            command = lambda : tk.messagebox.askretrycancel(
-                title='Warning', 
-                message='Are You Sure To Exit This Apps?')
+            command = lambda : exit_apps()
             # exit()
             # anchor = "center",
         )
         
-        button_manual.place(
+        button_exit.place(
             relx = 0.075, rely = 0.1, anchor = 'center',
         )
+        
+        # Exit Program
+        def exit_apps():
+            exit_apps = tk.messagebox.askquestion('Warning', 'Do you want to close this application?')
+            if exit_apps == 'yes':
+                tk.messagebox.showwarning('Warning', 'Turning Off the Robot Operating System in 5 Seconds')
+                os.system("gnome-terminal -e 'bash -c \"rosnode kill -a; killall -9 rosmaster; killall -9 roscore exit; sleep 4; exit; exec bash\"'")
+                sleep(5)
+                exit()
+            elif exit_apps == 'no':
+                tk.messagebox.showinfo('Warning', 'This application is not closed!')
+            else:
+                tk.messagebox.showwarning('Error', 'Something went wrong!')
         
         # Create Launch Button Configuration
         image_launch = ctk.CTkImage(light_image = Image.open(
@@ -146,15 +159,13 @@ class MainMenuFrame(ctk.CTkFrame):
             fg_color = 'black',
             image = image_launch,
             text = '',
-            # width = 45,
-            # height = 45,
             hover_color = '#4E4500', #7A6D00
             command = lambda : master.switch_frame(AutoManualFrame)
             # anchor = "center",
         )
         
         button_launch.place(
-            relx = 0.19, rely = 0.55, anchor = 'center',
+            relx = 0.19, rely = 0.575, anchor = 'center',
         )
         
         # Create Setting Button Configuration
@@ -167,17 +178,14 @@ class MainMenuFrame(ctk.CTkFrame):
             fg_color = 'black',
             image = image_setting,
             text = '',
-            # width = 45,
-            # height = 45,
             hover_color = '#4E4500', #7A6D00
             command = lambda : master.switch_frame(SettingFrame)
             # anchor = "center",
         )
         
         button_setting.place(
-            relx = 0.5, rely = 0.55, anchor = 'center',
-        )
-        
+            relx = 0.5, rely = 0.575, anchor = 'center',
+        )        
         # Create Help Button Configuration
         image_help = ctk.CTkImage(light_image = Image.open(
             '/home/bintangpascallo/GUI_robot/Assets/images/ButtonHelp.png'
@@ -188,33 +196,18 @@ class MainMenuFrame(ctk.CTkFrame):
             fg_color = 'black',
             image = image_help,
             text = '',
-            # width = 45,
-            # height = 45,
             hover_color = '#4E4500', #7A6D00
             # command = lambda : Roscore()
             # anchor = "center",
         )
         
         button_help.place(
-            relx = 0.81, rely = 0.55, anchor = 'center',
+            relx = 0.81, rely = 0.575, anchor = 'center',
         )
         
-        # def Roscore():
-        #     # os.system('neofetch')
-        #     os.system("gnome-terminal -e 'bash -c \"source ~/.bashrc; roscore; exec bash\"'")
-        #     # open a file
-        #     # file1 = open("/home/bintangpascallo/bash/roscore.sh")
-        #     # # read the file
-        #     # read_content = file1.read()
-        #     # print(read_content)
-            
-        # def Roscore2():
-        #     os.system('rosnode kill --all; killall -9 rosmaster;')
-        #     # os.system("gnome-terminal -e 'bash -c \"rosnode kill --all; killall -9 rosmaster; exec bash\"'")
-        #     # os.kill(os.getppid(), signal.SIGHUP)
-
+#CTkScrollableFrame(app, width=200, height=200)
 # Setting Class
-class SettingFrame(ctk.CTkFrame):
+class SettingFrame(ctk.CTkFrame):        
     def __init__(self,  master, **kwargs):
         super().__init__(master, **kwargs)
         
@@ -250,32 +243,121 @@ class SettingFrame(ctk.CTkFrame):
             relx = 0.075, rely = 0.1, anchor = 'center',
         )
         
-        # Create Auto Button Configuration
-        # image_auto = ctk.CTkImage(light_image = Image.open(
-        #     '/home/bintangpascallo/GUI_robot/Assets/images/ButtonAuto.png'
-        #     ),size = (250, 300))
+        # IP Address Checker
+        hostname = socket.gethostname()
+        IPAddr = socket.gethostbyname(hostname)
+        ip_address = str(IPAddr)
+        global ip_val
+        ip_val = ' Check IP Address : ' + ip_address
         
-        # Button Roscore
-        button_roscore = ctk.CTkButton(
+        button_ipcheck = ctk.CTkButton(
             self,
             fg_color = 'black',
-            text = 'Roscore',
+            text = ip_val,
             font = ("Kemco Pixel", 20),
             text_color = "#F7AC13",
             hover_color = '#4E4500', #7A6D00
             border_color = '#F7AC13',
             border_width = 3,
-            width = 150,
-            height = 150,
+            width = 700,
+            height = 50,
             corner_radius = 0,
-            command = lambda : os.system("gnome-terminal -e 'bash -c \"source ~/.bashrc; cd; roscore; exec bash\"'")
-            # anchor = "center",
-        ).place(
-            relx = 0.475, rely = 0.425, anchor = 'e',
+            command = lambda : ip_checker(),
+            anchor = "w",
         )
         
+        button_ipcheck.place(
+            relx = 0.065, rely = 0.3
+        )
+        
+        # IP Checker Program
+        def ip_checker():
+            hostname = socket.gethostname()
+            IPAddr = socket.gethostbyname(hostname)
+            ip_address = str(IPAddr)
+            
+            global ip_val
+            ip_val = ' Check IP Address : ' + ip_address
+            self.switch_frame(SettingFrame)
+        
+        # Edit IP Address for ROS open .bashrc
+        button_edit_ros_ip = ctk.CTkButton(
+            self,
+            fg_color = 'black',
+            text = ' Edit ROS IP Address',
+            font = ("Kemco Pixel", 20),
+            text_color = "#F7AC13",
+            hover_color = '#4E4500', #7A6D00
+            border_color = '#F7AC13',
+            border_width = 3,
+            width = 700,
+            height = 50,
+            corner_radius = 0,
+            command = lambda : ip_editor(),
+            anchor = "w",
+        )
+        
+        button_edit_ros_ip.place(
+            relx = 0.065, rely = 0.45
+        )
+        
+        # IP Editor Program
+        def ip_editor():
+            os.popen('sh /home/bintangpascallo/ipconfig.sh')
+            # os.system("gnome-terminal -e 'bash -c \"source ~/.bashrc; gedit ~/.bashrc; exit; exec bash\"'")
+        
+        # Activate LIDAR
+        button_lidar = ctk.CTkButton(
+            self,
+            fg_color = 'black',
+            text = ' Activate Lidar Sensor',
+            font = ("Kemco Pixel", 20),
+            text_color = "#F7AC13",
+            hover_color = '#4E4500', #7A6D00
+            border_color = '#F7AC13',
+            border_width = 3,
+            width = 700,
+            height = 50,
+            corner_radius = 0,
+            command = lambda : lidar_sens_on(),
+            anchor = "w",
+        )
+        
+        button_lidar.place(
+            relx = 0.065, rely = 0.6
+        )
+        
+        # LIDAR On
+        def lidar_sens_on():
+            os.system("gnome-terminal -e 'bash -c \"cd; source /home/bintangpascallo/catkin_ws/devel/setup.bash; roslaunch ydlidar lidar.launch; exit; exec bash\"'")
+        
+        # Activate Ros Serial
+        button_lidar = ctk.CTkButton(
+            self,
+            fg_color = 'black',
+            text = ' Activate ROS Serial',
+            font = ("Kemco Pixel", 20),
+            text_color = "#F7AC13",
+            hover_color = '#4E4500', #7A6D00
+            border_color = '#F7AC13',
+            border_width = 3,
+            width = 700,
+            height = 50,
+            corner_radius = 0,
+            command = lambda : rosserial(),
+            anchor = "w",
+        )
+        
+        button_lidar.place(
+            relx = 0.065, rely = 0.75
+        )
+        
+        # ROSSERIAL ON
+        def rosserial():
+            os.system("gnome-terminal -e 'bash -c \"cd; rosrun teleop_twist_keyboard teleop_twist_keyboard.py; exit; exec bash\"'")
+        
         self._frame = None
-    
+        
     # Swicth Frame Logic
     def switch_frame(self, frame_class):
         # Declare New Frame
@@ -407,15 +489,6 @@ class AutoFrame(ctk.CTkFrame):
         )
         
         title_destination.place(relx = 0.5, rely = 0.2, anchor = 'center')
-        
-        # title_connect_status = ctk.CTkLabel(
-        #     self,
-        #     text = 'Not Connected',
-        #     font = ("Kemco Pixel", 35),
-        #     text_color = "#F7AC13"
-        # )
-        
-        # title_connect_status.place(relx = 0.5, rely = 0.6, anchor = 'center')
         
         # Create Back Button Configuration
         image_exit = ctk.CTkImage(light_image = Image.open(
@@ -591,166 +664,6 @@ class AutoFrame(ctk.CTkFrame):
         )
         
         
-        # # Button Programming Lab
-        # image_lab_programming = ctk.CTkImage(light_image = Image.open(
-        #     '/home/bintangpascallo/GUI_robot/Assets/images/ButtonLabProgramming.png'
-        #     ),size = (150, 150))
-        
-        # button_lab_programming = ctk.CTkButton(
-        #     self,
-        #     fg_color = 'black',
-        #     image = image_lab_programming,
-        #     text = '',
-        #     hover_color = '#4E4500', #7A6D00
-        #     # command = lambda : self.master.switch_frame(ManualFrame)
-        #     # anchor = "center",
-        # )
-        
-        # button_lab_programming.place(
-        #     relx = 0.125, rely = 0.425, anchor = 'center',
-        # )
-        
-        # # Button Lab Sensorik
-        # image_lab_sensorik = ctk.CTkImage(light_image = Image.open(
-        #     '/home/bintangpascallo/GUI_robot/Assets/images/ButtonLabSensorik.png'
-        #     ),size = (150, 150))
-        
-        # button_lab_sensorik = ctk.CTkButton(
-        #     self,
-        #     fg_color = 'black',
-        #     image = image_lab_sensorik,
-        #     text = '',
-        #     hover_color = '#4E4500', #7A6D00
-        #     # command = lambda : self.master.switch_frame(ManualFrame)
-        #     # anchor = "center",
-        # )
-        
-        # button_lab_sensorik.place(
-        #     relx = 0.325, rely = 0.425, anchor = 'center',
-        # )
-        
-        # # button_lab_sensorik.pack(
-        # #     anchor = 'w',  
-        # #     padx = 100,  
-        # #     pady = 60,  
-        # #     # ipadx = 10
-        # #     # relx = 0.325, rely = 0.425, anchor = 'center',
-        # # )
-        
-        # # Button Computer Device
-        # image_computer_device = ctk.CTkImage(light_image = Image.open(
-        #     '/home/bintangpascallo/GUI_robot/Assets/images/ButtonComputerDevice.png'
-        #     ),size = (150, 150))
-        
-        # button_computer_device = ctk.CTkButton(
-        #     self,
-        #     fg_color = 'black',
-        #     image = image_computer_device,
-        #     text = '',
-        #     hover_color = '#4E4500', #7A6D00
-        #     # command = lambda : self.master.switch_frame(ManualFrame)
-        #     # anchor = "center",
-        # )
-        
-        # button_computer_device.place(
-        #     relx = 0.625, rely = 0.425, anchor = 'center',
-        # )
-        
-        # # Button Embedded System
-        # image_embedded_system = ctk.CTkImage(light_image = Image.open(
-        #     '/home/bintangpascallo/GUI_robot/Assets/images/ButtonEmbeddedSystem.png'
-        #     ),size = (150, 150))
-        
-        # button_embedded_system = ctk.CTkButton(
-        #     self,
-        #     fg_color = 'black',
-        #     image = image_embedded_system,
-        #     text = '',
-        #     hover_color = '#4E4500', #7A6D00
-        #     # command = lambda : self.master.switch_frame(ManualFrame)
-        #     # anchor = "center",
-        # )
-        
-        # button_embedded_system.place(
-        #     relx = 0.825, rely = 0.425, anchor = 'center',
-        # )
-        
-        # # Button Programming Lab
-        # image_lab_programming = ctk.CTkImage(light_image = Image.open(
-        #     '/home/bintangpascallo/GUI_robot/Assets/images/ButtonLabProgramming.png'
-        #     ),size = (150, 150))
-        
-        # button_lab_programming = ctk.CTkButton(
-        #     self,
-        #     fg_color = 'black',
-        #     image = image_lab_programming,
-        #     text = '',
-        #     hover_color = '#4E4500', #7A6D00
-        #     # command = lambda : self.master.switch_frame(ManualFrame)
-        #     # anchor = "center",
-        # )
-        
-        # button_lab_programming.place(
-        #     relx = 0.125, rely = 0.8, anchor = 'center',
-        # )
-        
-        # # Button Lab Sensorik
-        # image_lab_sensorik = ctk.CTkImage(light_image = Image.open(
-        #     '/home/bintangpascallo/GUI_robot/Assets/images/ButtonLabSensorik.png'
-        #     ),size = (150, 150))
-        
-        # button_lab_sensorik = ctk.CTkButton(
-        #     self,
-        #     fg_color = 'black',
-        #     image = image_lab_sensorik,
-        #     text = '',
-        #     hover_color = '#4E4500', #7A6D00
-        #     # command = lambda : self.master.switch_frame(ManualFrame)
-        #     # anchor = "center",
-        # )
-        
-        # button_lab_sensorik.place(
-        #     relx = 0.325, rely = 0.8, anchor = 'center',
-        # )
-        
-        # # Button Computer Device
-        # image_computer_device = ctk.CTkImage(light_image = Image.open(
-        #     '/home/bintangpascallo/GUI_robot/Assets/images/ButtonComputerDevice.png'
-        #     ),size = (150, 150))
-        
-        # button_computer_device = ctk.CTkButton(
-        #     self,
-        #     fg_color = 'black',
-        #     image = image_computer_device,
-        #     text = '',
-        #     hover_color = '#4E4500', #7A6D00
-        #     # command = lambda : self.master.switch_frame(ManualFrame)
-        #     # anchor = "center",
-        # )
-        
-        # button_computer_device.place(
-        #     relx = 0.625, rely = 0.8, anchor = 'center',
-        # )
-        
-        # # Button Embedded System
-        # image_embedded_system = ctk.CTkImage(light_image = Image.open(
-        #     '/home/bintangpascallo/GUI_robot/Assets/images/ButtonEmbeddedSystem.png'
-        #     ),size = (150, 150))
-        
-        # button_embedded_system = ctk.CTkButton(
-        #     self,
-        #     fg_color = 'black',
-        #     image = image_embedded_system,
-        #     text = '',
-        #     hover_color = '#4E4500', #7A6D00
-        #     # command = lambda : self.master.switch_frame(ManualFrame)
-        #     # anchor = "center",
-        # )
-        
-        # button_embedded_system.place(
-        #     relx = 0.825, rely = 0.8, anchor = 'center',
-        # )
-        
         self._frame = None
     
     # Swicth Frame Logic
@@ -784,23 +697,30 @@ class ManualFrame(ctk.CTkFrame):
         title_manual.place(relx = 0.5, rely = 0.1, anchor = 'center')
         
         # Create Message
-        title_joystick = ctk.CTkLabel(
+        title_connect = ctk.CTkLabel(
             self,
-            text = 'Connect The Joystick',
-            font = ("Kemco Pixel", 35),
+            text = 'Connect With Phone or\n\nROS Teleoperation',
+            font = ("Kemco Pixel", 30),
             text_color = "#F7AC13"
         )
         
-        title_joystick.place(relx = 0.5, rely = 0.4, anchor = 'center')
+        title_connect.place(relx = 0.5, rely = 0.4, anchor = 'center')
+        
+        # IP Address Checker
+        hostname = socket.gethostname()
+        IPAddr = socket.gethostbyname(hostname)
+        ip_address = str(IPAddr)
+        global ip_val
+        ip_val = ' IP Address : ' + ip_address
         
         title_connect_status = ctk.CTkLabel(
             self,
-            text = 'Not Connected',
+            text = ip_val,
             font = ("Kemco Pixel", 35),
             text_color = "#F7AC13"
         )
         
-        title_connect_status.place(relx = 0.5, rely = 0.6, anchor = 'center')
+        title_connect_status.place(relx = 0.5, rely = 0.7, anchor = 'center')
         
         # Create Back Button Configuration
         image_exit = ctk.CTkImage(light_image = Image.open(
@@ -842,4 +762,3 @@ class ManualFrame(ctk.CTkFrame):
 if __name__ == "__main__":
     main = MainApp() 
     main.mainloop()
-
